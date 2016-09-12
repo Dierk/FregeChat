@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: org.frege-lang:frege-interpreter-java-support:1.2.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.frege-lang/frege-interpreter-java-support/1.2.1-SNAPSHOT/ac1f1509471930ba3d37ae3728cc9a40717fcf1c/frege-interpreter-java-support-1.2.1-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.frege-lang/frege-interpreter-java-support/1.2.1-SNAPSHOT/f036fc0db992e463bfbbec830cc1a5c9628ddcc0/frege-interpreter-java-support-1.2.1-SNAPSHOT-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
