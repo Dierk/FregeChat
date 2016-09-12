@@ -1,0 +1,18 @@
+apply plugin: 'java'
+apply plugin: "org.frege-lang"
+apply plugin: 'application' // <1>
+
+repositories {
+    maven {
+        url  "http://dl.bintray.com/januslynd/maven"
+    }
+}
+
+dependencies {
+    //compile project (':shared')
+    compile 'com.github.januslynd:chinook-core:0.1.0-beta-24c8965'
+}
+
+mainClassName = "chinook.Routes" // <2>
+
+compileFrege.dependsOn 'compileJava'
