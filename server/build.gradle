@@ -1,18 +1,16 @@
-apply plugin: 'java'
-apply plugin: "org.frege-lang"
-apply plugin: 'application' // <1>
+
+apply plugin: 'application'
+
+mainClassName = "chinook.Routes"
 
 repositories {
     maven {
-        url  "http://dl.bintray.com/januslynd/maven"
+        url  "http://dl.bintray.com/januslynd/maven" // needed for chinook core
     }
 }
 
 dependencies {
-    //compile project (':shared')
-    compile 'com.github.januslynd:chinook-core:0.1.0-beta-24c8965'
+//    compile project (':shared')
+    compile 'com.github.januslynd:chinook-core:0.2.0'
 }
 
-mainClassName = "chinook.Routes" // <2>
-
-compileFrege.dependsOn 'compileJava'
