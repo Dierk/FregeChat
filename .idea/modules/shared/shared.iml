@@ -3,6 +3,7 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../../shared">
+      <sourceFolder url="file://$MODULE_DIR$/../../../shared/src/main/frege" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/../../../shared/.gradle" />
       <excludeFolder url="file://$MODULE_DIR$/../../../shared/build" />
     </content>

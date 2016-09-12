@@ -5,9 +5,24 @@ plugins {
 }
 
 subprojects {
+    apply plugin: 'org.frege-lang'
+
     repositories {
         mavenLocal()
         jcenter()
-        mavenCentral()
+    }
+
+    sourceCompatibility = 1.8
+    targetCompatibility = javaTarget
+
+    dependencies {
+        compile fregeVersion
+    }
+
+    compileFrege {
+        target = javaTarget
+    }
+    compileTestFrege {
+        target = javaTarget
     }
 }

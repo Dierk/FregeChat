@@ -1,20 +1,16 @@
 --- This module registers handlers to a given URI
-module chinook.Routes where
+module chinook.App where
 
-import chinook.Chinook
-import chinook.Handlers (helloWorldHandler,
-                         greetingsHandler,
-                         goodbyeHandler,
-                         getJSONHandler,
-                         postJSONHandler)
+import frege.Prelude hiding (+) -- used to combine routes
+import chinook.Router
+import chinook.Chinook (run, port)
+import chinook.Handlers
 
--- tag::routes[]
-main _  = do
-    -- GET
-    get  "/hi"              helloWorldHandler
-    get  "/hi/:name/:age"   greetingsHandler
-    get  "/bye"             goodbyeHandler
-    get  "/getjson"         getJSONHandler
-    -- POST
-    post "/postjson"        postJSONHandler
--- end::routes[]
+routes = [
+  "/json" + [
+    Get  "/get"  getJSONHandler,
+    Post "/post" postJSONHandler,
+    ]
+  ]
+
+main = Chinook.run [port 8080] routes

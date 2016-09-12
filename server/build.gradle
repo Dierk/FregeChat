@@ -1,16 +1,16 @@
 
 apply plugin: 'application'
 
-mainClassName = "chinook.Routes"
+mainClassName = "chinook.App"
 
 repositories {
     maven {
-        url  "http://dl.bintray.com/januslynd/maven" // needed for chinook core
+        url  "http://dl.bintray.com/fregelab/maven"
     }
 }
 
 dependencies {
-//    compile project (':shared')
-    compile 'com.github.januslynd:chinook-core:0.2.0'
+    compile project(':shared')
+    compile 'com.github.fregelab:chinook-core:0.2.1'
 }
 

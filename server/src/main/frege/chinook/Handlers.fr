@@ -4,44 +4,15 @@ import Data.JSON
 
 import chinook.Data (Lang)
 import chinook.util.ContentType
---tag::basic-imports[]
-import chinook.Chinook (Request, Response, response)
---end::basic-imports[]
+import chinook.Core (Request, Response, response)
 
--- tag::helloWorldHandler[]
-helloWorldHandler :: IO Request -> IO Response
-helloWorldHandler req = do
-   return $ response.{ output = Just "Hello World from Chinook :-)" }
--- end::helloWorldHandler[]
-
-goodbyeHandler :: IO Request -> IO Response
-goodbyeHandler req = do
-  return $ response.{ output = Just "Bye bye" }
-
--- tag::greetingsHandler[]
-greetingsHandler :: IO Request -> IO Response
-greetingsHandler req = do
-  name      <- req.path ":name"
-  age       <- req.path ":age"
-  return $ response.{ status = 200,
-                      output = createGreetings name age } -- <1> response status code
--- end::greetingsHandler[]
-
-createGreetings :: Maybe String -> Maybe String -> Maybe String
-createGreetings name age = fmap (concat) $ sequence [greeting, name, question, age, mark]
-    where greeting = Just "Hello "
-          question = Just ". Are you "
-          mark     = Just "?"
-
--- tag::getJSON[]
 getJSONHandler :: IO Request -> IO Response
 getJSONHandler req = do
   code  <- req.param "code"
   desc  <- req.param "desc"
   return $ response.{ status  = 200,
                       output  = getLangAsJSON code desc,
-                      headers = [("Content-Type", Just "application/json")] } -- <1> response content type
--- end::getJSON[]
+                      headers = [("Content-Type", Just "application/json")] }
 
 getLangAsJSON :: Maybe String -> Maybe String -> Maybe String
 getLangAsJSON pCode pDesc = do
@@ -49,16 +20,24 @@ getLangAsJSON pCode pDesc = do
   desc <- pDesc
   return $ (show . toJSON) $ Lang { code = code, desc = desc }
 
--- tag::postJSONHandler[]
 postJSONHandler :: IO Request -> IO Response
 postJSONHandler req = do
-    body     <- req.body
-    case (processJSON body) of
-        Just Lang { code, desc } -> return response.{ status = 201, output = Just "created" } -- <1> Created
-        Nothing                  -> return response.{ status = 400, output = Just "failed"  } -- <2> Bad request
--- end::postJSONHandler[]
+    body  <- req.body
+    return $ case (processJSON body) of
+        Just Lang { code, desc } -> createdResponse
+        Nothing                  -> badRequest
 
--- tag::processJSON[]
+createdResponse :: Response
+createdResponse = response.{ status  = 201 ,
+                             output  = Just "Created",
+                             headers = [ContentType.json] }
+
+badRequest :: Response
+badRequest = response.{ status = 400 ,
+                        output  = Just "Bad request",
+                        headers = [ContentType.json] }
+
+
 processJSON :: Maybe String -> Maybe Lang
 processJSON body = do
   text  <- body
@@ -66,4 +45,3 @@ processJSON body = do
   case json of
     Lang { code, desc }  -> Just json
     _                    -> Nothing
--- end::processJSON[]
