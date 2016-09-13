@@ -1,24 +1,23 @@
-module chinook.Handlers where
+module chat.Handlers where
 
 import Data.JSON
 
-import chinook.Data (Lang)
 import chinook.util.ContentType
 import chinook.Core (Request, Response, response)
+
+import chat.Data (Lang)
 
 getJSONHandler :: IO Request -> IO Response
 getJSONHandler req = do
   code  <- req.param "code"
   desc  <- req.param "desc"
-  return $ response.{ status  = 200,
-                      output  = getLangAsJSON code desc,
-                      headers = [("Content-Type", Just "application/json")] }
+  return $ jsonResponse.{ status = 200, output = getLangAsJSON code desc }
 
 getLangAsJSON :: Maybe String -> Maybe String -> Maybe String
 getLangAsJSON pCode pDesc = do
   code <- pCode
   desc <- pDesc
-  return $ (show . toJSON) $ Lang { code = code, desc = desc }
+  return $ (show . toJSON . take 10) $ cycle [Lang { code = code, desc = desc }]
 
 postJSONHandler :: IO Request -> IO Response
 postJSONHandler req = do
@@ -27,15 +26,10 @@ postJSONHandler req = do
         Just Lang { code, desc } -> createdResponse
         Nothing                  -> badRequest
 
-createdResponse :: Response
-createdResponse = response.{ status  = 201 ,
-                             output  = Just "Created",
-                             headers = [ContentType.json] }
 
-badRequest :: Response
-badRequest = response.{ status = 400 ,
-                        output  = Just "Bad request",
-                        headers = [ContentType.json] }
+jsonResponse    = response.{ headers = [ContentType.json] }
+createdResponse = jsonResponse.{ status = 201, output  = Just "Created"}
+badRequest      = jsonResponse.{ status = 400, output  = Just "Bad request" }
 
 
 processJSON :: Maybe String -> Maybe Lang

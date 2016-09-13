@@ -20,8 +20,14 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="server_main" target="1.8" />
-      <module name="server_test" target="1.8" />
+      <module name="client_main" target="1.7" />
+      <module name="client_test" target="1.7" />
+      <module name="FregeChat_main" target="1.8" />
+      <module name="FregeChat_test" target="1.8" />
+      <module name="server_main" target="1.7" />
+      <module name="server_test" target="1.7" />
+      <module name="shared_main" target="1.7" />
+      <module name="shared_test" target="1.7" />
     </bytecodeTargetLevel>
   </component>
 </project>

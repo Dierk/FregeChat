@@ -1,10 +1,10 @@
 --- This module registers handlers to a given URI
-module chinook.App where
+module chat.App where
 
 import frege.Prelude hiding (+) -- used to combine routes
-import chinook.Router
+import chinook.Router (Get, Post, +)
 import chinook.Chinook (run, port)
-import chinook.Handlers
+import chat.Handlers (getJSONHandler, postJSONHandler)
 
 routes = [
   "/json" + [
