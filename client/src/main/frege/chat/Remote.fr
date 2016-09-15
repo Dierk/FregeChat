@@ -1,0 +1,64 @@
+module chat.Remote where
+
+        
+main _ =  do
+    doPost "http://localhost:8080/json/create" "{\"sender\" : \"xx\", \"message\" : \"yy\"}\n"
+    r <- doPost "http://localhost:8080/json/list" ""
+    case r of 
+    	Nothing -> println "couldn't get anything :-("
+    	Just pl -> println $ "got payload " ++ pl
+
+    
+
+
+native doPost Remote.doHttpUrlConnectionAction :: String -> String -> IO (Maybe String)
+
+native module where {	
+  public static String doHttpUrlConnectionAction(String urlStr, String payload)  {
+    java.net.URL url = null;
+    java.io.BufferedReader reader = null;
+    StringBuilder stringBuilder;
+
+    try
+    {
+      url = new java.net.URL(urlStr);
+      java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+      
+      connection.setRequestMethod("POST");      
+      connection.setDoOutput(true);      
+      connection.setRequestProperty( "Content-type", "text/plain; charset=UTF-8");
+      connection.setReadTimeout(5*1000); // give it 5 seconds to respond
+      connection.connect();
+      
+      java.io.OutputStreamWriter writer = new java.io.OutputStreamWriter(connection.getOutputStream(), "UTF-8");
+      writer.write(payload);
+      writer.close();
+
+      reader = new java.io.BufferedReader(new java.io.InputStreamReader(connection.getInputStream()));
+      stringBuilder = new StringBuilder();
+
+      String line = null;
+      while ((line = reader.readLine()) != null) {
+        stringBuilder.append(line + "\n");
+      }
+      return stringBuilder.toString();
+    }
+    catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
+    finally { // the usual sillyness
+      if (reader != null)
+      {
+        try
+        {
+          reader.close();
+        }
+        catch (java.io.IOException ioe)
+        {
+          ioe.printStackTrace();
+        }
+      }
+    }
+  }
+}

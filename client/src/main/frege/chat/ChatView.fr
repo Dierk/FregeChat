@@ -5,14 +5,15 @@ import fregefx.JavaFxType
 import fregefx.JavaFxAll hiding (ListView)
 import fregefx.JavaFxUtils
 
-totalWidth   = 1024.0
-totalHeight  = 768.0
+totalWidth   = 800.0
+totalHeight  = 600.0
 
 main args = do
     FregeFX.launch $ withStage buildUI
 
 getPostings ∷ IO [String]
 getPostings = do
+    println "in getPostings"
     return  ["first","second","third"]
 
 buildUI :: Group -> Stage -> JFX Group
@@ -21,9 +22,9 @@ buildUI root stage = do
     stage.setWidth  totalWidth
     stage.setHeight totalHeight
     
-    senderField = TextField.new "Your name"
-    messageArea = TextArea.new  "Your message"
-    chatArea    = TextArea.new  "" :: JFX TextArea
+    senderField <- TextField.new "Your name"
+    messageArea <- TextArea.new  "Your message"
+    chatArea    <- TextArea.new  "xxx" :: JFX TextArea
     
 
     pane <- Pane.new () :: JFX Pane
@@ -35,20 +36,19 @@ buildUI root stage = do
         pane <: do
             vbox <- VBox.new 5d :: JFX VBox
             vbox.setPadding =<< insets 10
-            vbox <: senderField
-            vbox <: messageArea
+            vbox <: return senderField
+            vbox <: return messageArea
             vbox <: do
-                button <- Button.new "Send"
-                bridgeAction button (Thread.current() >>= _.getName) button.setText
-            vbox <: chatArea
+                button <- Button.new "Send"    
+                bridgeAction button (getPostings) (chatArea.setText . show)
+            vbox <: return chatArea
 
     scene <- stage.getScene
     getPostings `thenDo` (onChatLoaded chatArea)
 
     return root
 
-onChatLoaded :: JFX TextArea -> [String] -> JFX ()
+onChatLoaded :: TextArea -> [String] -> JFX ()
 onChatLoaded chatArea postings = do
-    chat <- chatArea
-    chat.setText "got some text"
+    chatArea.setText $ show postings
 

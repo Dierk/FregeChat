@@ -3,7 +3,8 @@ plugins {
   id "application"
 }
 
-mainClassName = 'chat.ChatView'
+//mainClassName = 'chat.ChatView'
+mainClassName = 'chat.Remote'
 
 dependencies {
     compile 'org.frege-lang:fregefx:0.3.2-SNAPSHOT'
