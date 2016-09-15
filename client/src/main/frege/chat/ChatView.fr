@@ -6,6 +6,7 @@ import fregefx.JavaFxAll hiding (ListView)
 import fregefx.JavaFxUtils
 
 import Data.JSON
+import Control.Concurrent
 
 import chat.Remote (doPost)
 import chat.Data (Post)
@@ -13,9 +14,11 @@ import chat.Data (Post)
 totalWidth   = 600.0
 totalHeight  = 500.0
 
-main args = do
-    FregeFX.launch $ withStage buildUI
+type InputRef = JFXRef (TextField, TextArea) 
 
+main args = do        
+    FregeFX.launch $ withStage buildUI 
+    
 getPostings ∷ IO (Maybe String)
 getPostings = doPost "http://localhost:8080/json/list" ""
 
@@ -31,7 +34,6 @@ buildUI root stage = do
     
     inputRef <- JFXRef.new (senderField, messageArea)
     
-
     pane <- Pane.new () :: JFX Pane
     root <: do
         pane `addNode` do
@@ -46,31 +48,26 @@ buildUI root stage = do
             vbox  <: do
             	hbox <- HBox.new 5d :: JFX HBox            	
 	            hbox <: do
-	                button1 <- Button.new "Send"     
-	                submitPost inputRef button1
+                    sendButton <- Button.new "Send"     
+                    actionIO_ sendButton (submitPost inputRef)
 	            hbox <: do
-	                button2 <- Button.new "Refresh"     
-	                bridgeAction button2 (getPostings) (onChatLoaded chatArea)
+	                refreshButton <- Button.new "Refresh"     
+	                bridgeAction refreshButton getPostings (onChatLoaded chatArea)
             vbox <: return chatArea
-
     scene <- stage.getScene
-    getPostings `thenDo` (onChatLoaded chatArea)
-
+    -- getPostings `thenDo` (onChatLoaded chatArea) -- in case we want to pre-load.
     return root
 
+submitPost :: InputRef -> IO ()
+submitPost inputRef = 
+    inIO (makePost inputRef) $ \payload -> do
+        doPost "http://localhost:8080/json/create" payload 
+        return ()
 
-submitPost :: JFXRef (TextField, TextArea) -> Button -> JFX ButtonBase
-submitPost inputRef button = do 
-    bridgeAction button (blubs inputRef) (\_ -> return () )
-
-blubs :: JFXRef (TextField, TextArea) -> IO ()
-blubs inputRef = do 
-	inIO (makePost inputRef) (\payload -> doPost "http://localhost:8080/json/create" payload >> return ())
-
-makePost :: JFXRef (TextField, TextArea) -> JFX String
+makePost :: InputRef -> JFX String
 makePost inputRef = do
     (sender, message) <- inputRef.get
-    senderText <- sender.getText
+    senderText  <- sender.getText
     messageText <- message.getText
     return $ show Post {sender = senderText, message = messageText}.toJSON
 
