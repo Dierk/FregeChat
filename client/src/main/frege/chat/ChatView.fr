@@ -5,19 +5,19 @@ import fregefx.JavaFxType
 import fregefx.JavaFxAll hiding (ListView)
 import fregefx.JavaFxUtils
 
+import Data.JSON
+
 import chat.Remote (doPost)
 import chat.Data (Post)
 
-totalWidth   = 800.0
-totalHeight  = 600.0
+totalWidth   = 600.0
+totalHeight  = 500.0
 
 main args = do
     FregeFX.launch $ withStage buildUI
 
-getPostings ∷ IO [String]
-getPostings = do
-    println "in getPostings"
-    return  ["first","second","third"]
+getPostings ∷ IO (Maybe String)
+getPostings = doPost "http://localhost:8080/json/list" ""
 
 buildUI :: Group -> Stage -> JFX Group
 buildUI root stage = do
@@ -25,24 +25,24 @@ buildUI root stage = do
     stage.setWidth  totalWidth
     stage.setHeight totalHeight
     
-    senderField <- TextField.new "Your name"    :: JFX TextField
-    messageArea <- TextArea.new  "Your message" :: JFX TextArea
-    chatArea    <- TextArea.new  "xxx"          :: JFX TextArea
+    senderField <- TextField.new "Dierk"                    :: JFX TextField
+    messageArea <- TextArea.new  "My message: Frege rocks!" :: JFX TextArea
+    chatArea    <- TextArea.new  "empty"                    :: JFX TextArea
     
 
     pane <- Pane.new () :: JFX Pane
     root <: do
         pane `addNode` do
             r <- Rectangle.new 0.0 0.0 totalWidth totalHeight
-            r.setStyle "-fx-fill:radial-gradient(center 25% 25%, radius 60%, reflect, red, black );"
+            r.setStyle "-fx-fill:radial-gradient(center 25% 25%, radius 60%, reflect, orange, red );"
             return r
         pane <: do
             vbox <- VBox.new 5d :: JFX VBox
-            vbox.setPadding =<< insets 10
+            vbox.setPadding =<< insets 25
             vbox <: return senderField
             vbox <: return messageArea
             vbox <: do
-                button <- Button.new "Send"    
+                button <- Button.new "Send"     
                 submitPost senderField messageArea button
             vbox <: return chatArea
 
@@ -53,18 +53,19 @@ buildUI root stage = do
 
 
 submitPost :: TextField -> TextArea -> Button -> JFX ButtonBase
-submitPost sender message button = do
-	-- bridgeAction button (return "hi") (\result -> message.setText "" >> return () )
-    -- a <- sender 
-    aText <- sender.getText
-    -- b <- message
-    bText <- message.getText
-    -- payload = show (Post a b).toJSON
-    -- bridgeAction button (return "hi") (\result -> message.setText "" >> return () )
-    bridgeAction button (doPost "http://localhost:8080/json/create" $ show (Post aText bText).toJSON) (\result -> message.setText "" >> return () )
+submitPost sender message button = do 
+    senderText <- sender.getText
+    messageText <- message.getText
+    payload = show Post {sender = senderText, message = messageText}.toJSON
+    bridgeAction button (doPost "http://localhost:8080/json/create" payload) (\_ -> message.setText "" >> return () )
 
 
-onChatLoaded :: TextArea -> [String] -> JFX ()
-onChatLoaded chatArea postings = do
-    chatArea.setText $ show postings
+onChatLoaded :: TextArea -> (Maybe String) -> JFX ()
+onChatLoaded chatArea result = do
+    case (result >>= parseJSON) of
+        Nothing                -> return ()
+        Just (posts :: [Post]) -> do
+            output = unlines $ map (\post -> post.sender ++ ":\n    " ++ post.message ++ "\n") posts	
+            chatArea.setText output
+    
 
