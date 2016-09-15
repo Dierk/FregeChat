@@ -1,0 +1,10 @@
+
+plugins {
+  id "application"
+}
+
+mainClassName = 'chat.ChatView'
+
+dependencies {
+    compile 'org.frege-lang:fregefx:0.3.2-SNAPSHOT'
+}

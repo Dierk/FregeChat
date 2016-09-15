@@ -4,13 +4,15 @@ module chat.App where
 import frege.Prelude hiding (+) -- used to combine routes
 import chinook.Router (Get, Post, +)
 import chinook.Chinook (run, port)
-import chat.Handlers (getJSONHandler, postJSONHandler)
+import chat.Handlers (getJSONHandler, postJSONHandler, newChat)
 
-routes = [
+routes chatVar = [
   "/json" + [
-    Get  "/get"  getJSONHandler,
-    Post "/post" postJSONHandler,
+    Post "/list"   $ getJSONHandler  chatVar,
+    Post "/create" $ postJSONHandler chatVar,
     ]
   ]
 
-main = Chinook.run [port 8080] routes
+main = do
+	chatVar <- newChat
+	Chinook.run [port 8080] (routes chatVar)

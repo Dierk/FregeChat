@@ -10,6 +10,7 @@ repositories {
 }
 
 dependencies {
+    compile 'org.frege-lang:frege:3.24-7.100'
     compile project(':shared')
     compile 'com.github.fregelab:chinook-core:0.2.1'
 }

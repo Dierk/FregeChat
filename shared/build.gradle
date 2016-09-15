@@ -1,0 +1,3 @@
+dependencies {
+    compile 'org.frege-lang:frege:3.24-7.100'
+}

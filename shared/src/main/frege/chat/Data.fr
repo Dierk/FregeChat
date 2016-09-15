@@ -1,23 +1,26 @@
 module chat.Data where
 import Data.JSON
 import Data.List
+import Control.Concurrent (MVar)
 
-data Lang = Lang { code :: String,
-                   desc :: String }
+type Chat    = [Post]  -- latest first
+type ChatVar = MVar Chat
 
-derive Show Lang
+data Post = Post { sender :: String,
+                   message :: String }
+derive Show Post
 
-instance ToJSON Lang where
-  toJSON Lang {code, desc} =
+instance ToJSON Post where
+  toJSON Post {sender, message} =
     Struct [
-      assoc "code" code,
-      assoc "desc" desc
+      assoc "sender" sender,
+      assoc "message" message
     ]
 
-instance FromJSON Lang where
+instance FromJSON Post where
   fromJSON v = case v of
     Struct s -> do
-      code <- field "code" s
-      desc <- field "desc" s
-      return Lang {code, desc}
-    _        ->  fail ("expected {\"code\" : ..., \"desc\" : ...}, found " ++ show v)
+      sender  <- field "sender" s
+      message <- field "message" s
+      return Post {sender, message}
+    _        ->  fail ("expected {\"sender\" : ..., \"message\" : ...}, found " ++ show v)

@@ -2,40 +2,37 @@ module chat.Handlers where
 
 import Data.JSON
 
-import chinook.util.ContentType
+import Control.Concurrent (MVar)
+
+import chinook.util.ContentType (json)
 import chinook.Core (Request, Response, response)
 
-import chat.Data (Lang)
+import chat.Data (Post, ChatVar)
 
-getJSONHandler :: IO Request -> IO Response
-getJSONHandler req = do
-  code  <- req.param "code"
-  desc  <- req.param "desc"
-  return $ jsonResponse.{ status = 200, output = getLangAsJSON code desc }
 
-getLangAsJSON :: Maybe String -> Maybe String -> Maybe String
-getLangAsJSON pCode pDesc = do
-  code <- pCode
-  desc <- pDesc
-  return $ (show . toJSON . take 10) $ cycle [Lang { code = code, desc = desc }]
+newChat :: IO ChatVar
+newChat = MVar.new []
 
-postJSONHandler :: IO Request -> IO Response
-postJSONHandler req = do
+
+getJSONHandler :: ChatVar -> IO Request -> IO Response
+getJSONHandler chatVar _ = do
+  chat <- chatVar.take
+  chatVar.put chat
+  output = show chat.toJSON
+  return jsonResponse.{ status = 200, output = Just output}
+
+
+postJSONHandler :: ChatVar -> IO Request -> IO Response
+postJSONHandler chatVar req = do
     body  <- req.body
-    return $ case (processJSON body) of
-        Just Lang { code, desc } -> createdResponse
-        Nothing                  -> badRequest
+    case (body >>= parseJSON) of
+        Nothing   -> return badRequest
+        Just post -> do
+            chat <- chatVar.take
+            chatVar.put (post : chat) 
+            return createdResponse
 
-
-jsonResponse    = response.{ headers = [ContentType.json] }
+jsonResponse    = response.{ headers = [json] }
 createdResponse = jsonResponse.{ status = 201, output  = Just "Created"}
 badRequest      = jsonResponse.{ status = 400, output  = Just "Bad request" }
 
-
-processJSON :: Maybe String -> Maybe Lang
-processJSON body = do
-  text  <- body
-  json  <- parseJSON text
-  case json of
-    Lang { code, desc }  -> Just json
-    _                    -> Nothing

@@ -1,0 +1,54 @@
+
+module chat.ChatView where
+
+import fregefx.JavaFxType
+import fregefx.JavaFxAll hiding (ListView)
+import fregefx.JavaFxUtils
+
+totalWidth   = 1024.0
+totalHeight  = 768.0
+
+main args = do
+    FregeFX.launch $ withStage buildUI
+
+getPostings ∷ IO [String]
+getPostings = do
+    return  ["first","second","third"]
+
+buildUI :: Group -> Stage -> JFX Group
+buildUI root stage = do
+    stage.setTitle "Frege Chat"
+    stage.setWidth  totalWidth
+    stage.setHeight totalHeight
+    
+    senderField = TextField.new "Your name"
+    messageArea = TextArea.new  "Your message"
+    chatArea    = TextArea.new  "" :: JFX TextArea
+    
+
+    pane <- Pane.new () :: JFX Pane
+    root <: do
+        pane `addNode` do
+            r <- Rectangle.new 0.0 0.0 totalWidth totalHeight
+            r.setStyle "-fx-fill:radial-gradient(center 25% 25%, radius 60%, reflect, red, black );"
+            return r
+        pane <: do
+            vbox <- VBox.new 5d :: JFX VBox
+            vbox.setPadding =<< insets 10
+            vbox <: senderField
+            vbox <: messageArea
+            vbox <: do
+                button <- Button.new "Send"
+                bridgeAction button (Thread.current() >>= _.getName) button.setText
+            vbox <: chatArea
+
+    scene <- stage.getScene
+    getPostings `thenDo` (onChatLoaded chatArea)
+
+    return root
+
+onChatLoaded :: JFX TextArea -> [String] -> JFX ()
+onChatLoaded chatArea postings = do
+    chat <- chatArea
+    chat.setText "got some text"
+
