@@ -29,6 +29,8 @@ buildUI root stage = do
     messageArea <- TextArea.new  "My message: Frege rocks!" :: JFX TextArea
     chatArea    <- TextArea.new  "empty"                    :: JFX TextArea
     
+    inputRef <- JFXRef.new (senderField, messageArea)
+    
 
     pane <- Pane.new () :: JFX Pane
     root <: do
@@ -41,9 +43,14 @@ buildUI root stage = do
             vbox.setPadding =<< insets 25
             vbox <: return senderField
             vbox <: return messageArea
-            vbox <: do
-                button <- Button.new "Send"     
-                submitPost senderField messageArea button
+            vbox  <: do
+            	hbox <- HBox.new 5d :: JFX HBox            	
+	            hbox <: do
+	                button1 <- Button.new "Send"     
+	                submitPost inputRef button1
+	            hbox <: do
+	                button2 <- Button.new "Refresh"     
+	                bridgeAction button2 (getPostings) (onChatLoaded chatArea)
             vbox <: return chatArea
 
     scene <- stage.getScene
@@ -52,13 +59,20 @@ buildUI root stage = do
     return root
 
 
-submitPost :: TextField -> TextArea -> Button -> JFX ButtonBase
-submitPost sender message button = do 
+submitPost :: JFXRef (TextField, TextArea) -> Button -> JFX ButtonBase
+submitPost inputRef button = do 
+    bridgeAction button (blubs inputRef) (\_ -> return () )
+
+blubs :: JFXRef (TextField, TextArea) -> IO ()
+blubs inputRef = do 
+	inIO (makePost inputRef) (\payload -> doPost "http://localhost:8080/json/create" payload >> return ())
+
+makePost :: JFXRef (TextField, TextArea) -> JFX String
+makePost inputRef = do
+    (sender, message) <- inputRef.get
     senderText <- sender.getText
     messageText <- message.getText
-    payload = show Post {sender = senderText, message = messageText}.toJSON
-    bridgeAction button (doPost "http://localhost:8080/json/create" payload) (\_ -> message.setText "" >> return () )
-
+    return $ show Post {sender = senderText, message = messageText}.toJSON
 
 onChatLoaded :: TextArea -> (Maybe String) -> JFX ()
 onChatLoaded chatArea result = do
