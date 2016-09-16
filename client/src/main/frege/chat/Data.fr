@@ -1,0 +1,26 @@
+module chat.Data where
+import Data.JSON
+import Data.List
+import Control.Concurrent (MVar)
+
+type Chat    = [Post]  -- latest first
+type ChatVar = MVar Chat
+
+data Post = Post { sender :: String,
+                   message :: String }
+derive Show Post
+
+instance ToJSON Post where
+  toJSON Post {sender, message} =
+    Struct [
+      assoc "sender" sender,
+      assoc "message" message
+    ]
+
+instance FromJSON Post where
+  fromJSON v = case v of
+    Struct s -> do
+      sender  <- field "sender" s
+      message <- field "message" s
+      return Post {sender, message}
+    _        ->  fail ("expected {\"sender\" : ..., \"message\" : ...}, found " ++ show v)

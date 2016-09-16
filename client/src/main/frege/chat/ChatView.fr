@@ -17,13 +17,28 @@ totalHeight  = 500.0
 type InputRef = JFXRef (TextField, TextArea) 
 
 main args = do        
-    FregeFX.launch $ withStage buildUI 
+    ready <- MVar.newEmpty     -- for thread coordination, set in showUI thread, start autorefresh when ready
+    async do                   -- JavaFX would block the main thread otherwise after launching the UI thread
+        FregeFX.launch $ withStage $ buildUI ready 
+    chatRef <- ready.take      -- proceeding in the main thread, wait until view is available
+    autorefresh chatRef        -- start the autorefresh
+    
+autorefresh :: JFXRef TextArea -> IO ()
+autorefresh chatRef = do
+    inIO (refresh chatRef) $ \_ -> do
+        Thread.sleep 500
+        autorefresh chatRef
+	                                
+refresh :: JFXRef TextArea -> JFX ()
+refresh chatRef = do
+    chatArea <- chatRef.get
+    getPostings `thenDo` (onChatLoaded chatArea)
     
 getPostings ∷ IO (Maybe String)
 getPostings = doPost "http://localhost:8080/json/list" ""
 
-buildUI :: Group -> Stage -> JFX Group
-buildUI root stage = do
+buildUI :: MVar (JFXRef TextArea) -> Group -> Stage -> JFX Group
+buildUI ready root stage = do
     stage.setTitle "Frege Chat"
     stage.setWidth  totalWidth
     stage.setHeight totalHeight
@@ -32,6 +47,7 @@ buildUI root stage = do
     messageArea <- TextArea.new  "My message: Frege rocks!" :: JFX TextArea
     chatArea    <- TextArea.new  "empty"                    :: JFX TextArea
     
+    chatRef  <- JFXRef.new chatArea
     inputRef <- JFXRef.new (senderField, messageArea)
     
     pane <- Pane.new () :: JFX Pane
@@ -44,23 +60,21 @@ buildUI root stage = do
             vbox <- VBox.new 5d :: JFX VBox
             vbox.setPadding =<< insets 25
             vbox <: return senderField
-            vbox <: return messageArea
-            vbox  <: do
-            	hbox <- HBox.new 5d :: JFX HBox            	
-	            hbox <: do
-                    sendButton <- Button.new "Send"     
-                    actionIO_ sendButton (submitPost inputRef)
-	            hbox <: do
-	                refreshButton <- Button.new "Refresh"     
-	                bridgeAction refreshButton getPostings (onChatLoaded chatArea)
+            vbox <: return messageArea           	
+            vbox <: do
+                sendButton <- Button.new "Send"     
+                actionIO_ sendButton (submitPost inputRef)
             vbox <: return chatArea
     scene <- stage.getScene
-    -- getPostings `thenDo` (onChatLoaded chatArea) -- in case we want to pre-load.
+    (ready.put chatRef) `thenDo` noAction
     return root
+
+noAction _ = return ()
 
 submitPost :: InputRef -> IO ()
 submitPost inputRef = 
     inIO (makePost inputRef) $ \payload -> do
+        Thread.current() >>= _.getName >>= println
         doPost "http://localhost:8080/json/create" payload 
         return ()
 
