@@ -1,7 +1,8 @@
 Frege Chat
 ==========
 
-This application has been developed in preparation of the JavaOne Emerging Languages panel.
+This application has been developed in preparation of the JavaOne Emerging Languages panel,
+which Frege then did *win* for the second time in a row.
 
 Every language was supposed to develop a chat application.
 
